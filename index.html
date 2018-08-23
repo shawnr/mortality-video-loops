@@ -5,8 +5,10 @@
   <link rel="stylesheet" type="text/css" href="main.css">
   <script src="js/axios.min.js"></script>
   <body>
-    <video autoplay loop src="videos/smoke0.webm">
-    </video>
+    <div class="video-container">
+      <video autoplay loop src="videos/smoke0.webm">
+      </video>
+    </div>
     <p id="debug-data"></p>
   <script>
     let debug = true;
@@ -25,8 +27,8 @@
     ]
 
     let vidplayer = document.querySelector('video');
-    vidplayer.setAttribute('height', window.innerHeight);
-    vidplayer.setAttribute('width', window.innerWidth);    
+    // vidplayer.setAttribute('height', window.innerHeight);
+    // vidplayer.setAttribute('width', window.innerWidth);    
 
     if (debug) {
       body.setAttribute('class', 'debug');
