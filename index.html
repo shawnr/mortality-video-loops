@@ -1,0 +1,123 @@
+<html>
+  <head>
+    <title>Mortality</title>
+  </head>
+  <link rel="stylesheet" type="text/css" href="main.css">
+  <script src="js/axios.min.js"></script>
+  <body>
+    <video autoplay loop src="videos/smoke0.webm">
+    </video>
+    <p id="debug-data"></p>
+  <script>
+    let debug = true;
+    let faces = 0;
+    let prevFaces = 0;
+    let currentFrame = 0;
+    let body = document.querySelector('body');
+    let currVidIndex = 0;
+
+    let vidSequence = [
+      'smoke0.webm',
+      'smoke1.webm',
+      'smoke2.webm',
+      'smoke3.webm',
+      'smoke4.webm'
+    ]
+
+    let vidplayer = document.querySelector('video');
+    vidplayer.setAttribute('height', window.innerHeight);
+    vidplayer.setAttribute('width', window.innerWidth);    
+
+    if (debug) {
+      body.setAttribute('class', 'debug');
+      var debugData = document.querySelector('#debug-data');
+      debugData.innerHTML = `Faces detected: ${faces}`;
+
+      // Set up keyboard event to increase number of faces
+      document.addEventListener('keydown', function(event){
+        console.log('keypress detected');
+        if (event.keyCode === 38){
+          console.log('Moving Forward');
+          moveForward();
+          debugData.innerHTML = `Moved forward in video sequence.`;
+        }
+      });
+      // Set up keyboard event to decrease number of faces detected
+      document.addEventListener('keydown', function(event){
+        console.log('keypress detected');
+        if (event.keyCode === 40){
+          console.log('Moving Backward');
+          moveBackward();
+          debugData.innerHTML = `Moved back in video sequence.`;
+        }
+      });
+    }
+
+    function checkFaces(){
+      axios.get('./faces.json')
+        .then(function (response) {
+          console.log('loaded face data');
+          let faceReport = response.data;
+          faces = faceReport.num;
+          debug = faceReport.debug;
+          if (debug)  {
+            let visitorGroups = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, ]
+            faces = visitorGroups[Math.floor(Math.random() * visitorGroups.length)];
+            debugData.innerHTML = `Faces detected: ${faces}`;
+          } else {
+            if (debugData != null) {
+              body.removeChild(debugData);
+              debugData = null;
+            }
+          }
+          console.log(`Detected ${faces} faces.`);
+          evaluateLife(faces);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+
+    let faceCheck = setInterval(checkFaces, 35000);
+
+    function defer(f, ms) {
+      return function() {
+        setTimeout(() => f.apply(this, arguments), ms)
+      };
+    }
+
+    function moveForward() {
+      if (currVidIndex < vidSequence.length - 1) {
+        console.log('Moving video forward.');
+        currVidIndex++;
+        console.log('Current video: ' + vidSequence[currVidIndex]);
+        vidplayer.setAttribute('src', `videos/${vidSequence[currVidIndex]}`);
+      }
+    }
+
+    function moveBackward() {
+      if (currVidIndex > 0) {
+        console.log('Moving video backward.');
+        currVidIndex--;
+        console.log('Current video: ' + vidSequence[currVidIndex]);
+        vidplayer.setAttribute('src', `videos/${vidSequence[currVidIndex]}`);
+      }
+    }
+
+    function evaluateLife() {
+      if (faces < prevFaces) {
+        console.log('viewers have left');
+        setTimeout(moveBackward, 1000);
+      } else if (faces > 0) {
+        console.log('viewers detected');
+        setTimeout(moveForward, 1000)
+      } else if (faces === 0 && currVidIndex > 0) {
+        console.log('no viewers detected; moving video sequence backwards');
+        setTimeout(moveBackward, 1000);
+      } else {
+        console.log('no viewers detected; no change in video');
+      }
+    }
+  </script>
+  </body>
+</html>
